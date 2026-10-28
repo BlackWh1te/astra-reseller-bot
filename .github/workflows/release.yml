@@ -1,0 +1,36 @@
+name: Test and publish signed release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Check tag matches package
+        run: node --input-type=module -e "import p from './package.json' with {type:'json'}; if(process.env.GITHUB_REF_NAME !== 'v'+p.version) process.exit(1)"
+      - run: npm run build
+      - run: npm run sign
+        env:
+          RELEASE_SIGNING_KEY: ${{ secrets.RELEASE_SIGNING_KEY }}
+      - name: Publish checked assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          gh release create "$GITHUB_REF_NAME"
+          release/funpay-bot-reseller.zip
+          release/manifest.json
+          release/funpay-bot-reseller/*
+          --title "Astra Reseller Bot $GITHUB_REF_NAME"
+          --notes "Signed client release. Installation instructions are in README.md. Existing configuration and shop templates are preserved by the in-app updater."

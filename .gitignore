@@ -1,0 +1,9 @@
+node_modules/
+release/
+data/
+backups/
+bot.mjs
+dist/
+.env*
+*.pem
+*.key
