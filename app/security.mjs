@@ -22,7 +22,7 @@ export function authorizeLocal(request,hosts) {
 export function securityHeaders(response,nonce) {
  response.setHeader('Cache-Control','no-store');
  response.setHeader('X-Content-Type-Options','nosniff');
- response.setHeader('Referrer-Policy','no-referrer');
+ response.setHeader('Referrer-Policy','same-origin');
  response.setHeader('X-Frame-Options','DENY');
  response.setHeader('Cross-Origin-Resource-Policy','same-origin');
  response.setHeader('Content-Security-Policy',`default-src 'none'; script-src 'nonce-${nonce}'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'`);

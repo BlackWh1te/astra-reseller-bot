@@ -22,11 +22,11 @@ const store=new engine.Store(join(dir,'state.json'));const bot=new engine.Resell
 test('every panel page works; token and dollar budgets are separate; host/origin and CSRF controls apply',async()=>{
  for(const view of ['overview','balance','keys','usage','setup','updates','ai','goods','orders','activity']){
   const response=await fetch(`${base}/?view=${view}`);assert.equal(response.status,200,view);const html=await response.text();assert(!html.includes('<img src=x onerror=alert(1)>'));
-  assert.match(response.headers.get('content-security-policy'),/frame-ancestors 'none'/);assert.match(html,/<script nonce="[^"]+">/);
+  assert.equal(response.headers.get('referrer-policy'),'same-origin');assert.match(response.headers.get('content-security-policy'),/frame-ancestors 'none'/);assert.match(html,/<script nonce="[^"]+">/);
   if(view==='overview'){assert.match(html,/1\.94B/);assert.match(html,/Доллары API/);}
   if(view==='balance'){assert.match(html,/499,7/);assert.match(html,/Миллион|млн|млрд/);assert.match(html,/neva_glamur67/);}
  }
- assert.equal((await fetch(base,{headers:{origin:'https://attacker.test'}})).status,403);
+ assert.equal((await fetch(base,{headers:{origin:'https://attacker.test'}})).status,403);assert.equal((await fetch(base,{headers:{origin:'null'}})).status,403);
  const hostStatus=await new Promise((resolve,reject)=>{httpGet(base,{headers:{host:'attacker.test'}},response=>{response.resume();resolve(response.statusCode);}).on('error',reject);});assert.equal(hostStatus,403);
  assert.equal((await fetch(base+'/action',{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:'action=key_create&token=wrong'})).status,403);assert.equal(created,0);
  const page=await(await fetch(base+'/?view=keys')).text();const token=page.match(/name="token" value="([^"]+)"/)[1];const op=page.match(/name="op_id" value="([^"]+)"/)[1];
